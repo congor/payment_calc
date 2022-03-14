@@ -1,0 +1,388 @@
+<head>
+	<meta charset="utf-8">
+	<title>Расчет платежа</title>
+	<style>
+	</style>
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=yes">
+</head>
+<body>
+	<form>
+		<div>
+			<label for="id_age_group">Возрастная группа, лет:</label>
+			<select name="age_group" id="id_age_group" title="Возрастная группа" required>
+			</select>
+		</div>
+		<div>
+			<label for="id_students_quantity_group">Количество студентов, чел:</label>
+			<select name="students_quantity_group" id="id_students_quantity_group" title="Количество студентов" required>
+			</select>
+		</div>
+		<div>
+			<label for="id_lesson_time">Время урока, мин:</label>
+			<select name="lesson_time" id="id_lesson_time" title="Время урока" required>
+			</select>
+		</div>
+		<div>
+			<label for="id_payment_program">Программа оплаты:</label>
+			<select name="payment_program" id="id_payment_program" title="Программа оплаты" required>
+			</select>
+		</div>
+		<div>
+			<span>Цена одного урока:</span>
+			<span id="id_price"></span>
+		</div>
+		<div>
+			<label for="id_missed_lessons">Количество пропущенных уроков в месяце, предшествующем оплачиваемому:</label>
+			<input type="number" id="id_missed_lessons" name="missed_lessons" title="" min=0 max=12 value=0 />
+		</div>
+		<div>
+			<label for="id_planned_lessons">Количество уроков в оплачиваемом месяце:</label>
+			<input type="number" id="id_planned_lessons" name="planned_lessons" title="" min=0 max=12 value=12 />
+		</div>
+		<div>
+			<label for="id_discount_rate">Процент скидки:</label>
+			<select name="discount_rate" id="id_discount_rate" title="Процент скидки" required>
+				<option value="0">Без скидки</option>
+				<option value="5">5%</option>
+				<option value="7">7%</option>
+			</select>
+		</div>
+		<div>
+			<span>К оплате за оплачиваемый месяц без скидки, руб:</span>
+			<span id="id_total_month_price"></span>
+		</div>
+		<div>
+			<span>Размер скидки, руб:</span>
+			<span id="id_discount_value"></span>
+		</div>
+		<div>
+			<span>К оплате за оплачиваемый месяц, руб:</span>
+			<span id="id_total_price"></span>
+		</div>
+	</form>
+	<script>
+
+		function cleanNodeContent(parentNode) {
+			while (parentNode.firstChild) {
+				parentNode.removeChild(parentNode.firstChild);
+			};
+		};
+
+		data = [{"id":1,"age_group":{"id":1,"title":"Дети: 6 - 7","minimum_age":6,"maximum_age":7,"age_type":1},"students_quantity_group":{"id":1,"title":"Группа (5 - 8)","minimum_quantity":5,"maximum_quantity":8,"group_type":1},"lesson_time":{"id":2,"time_value":45},"payment_program":{"id":1,"title":"Абонемент"},"price":280},
+			{"id":2,"age_group":{"id":1,"title":"Дети: 6 - 7","minimum_age":6,"maximum_age":7,"age_type":1},"students_quantity_group":{"id":1,"title":"Группа (5 - 8)","minimum_quantity":5,"maximum_quantity":8,"group_type":1},"lesson_time":{"id":2,"time_value":45},"payment_program":{"id":2,"title":"Стандарт"},"price":305},
+			{"id":3,"age_group":{"id":1,"title":"Дети: 6 - 7","minimum_age":6,"maximum_age":7,"age_type":1},"students_quantity_group":{"id":2,"title":"Группа (9 - 12)","minimum_quantity":9,"maximum_quantity":12,"group_type":1},"lesson_time":{"id":2,"time_value":45},"payment_program":{"id":1,"title":"Абонемент"},"price":255},
+			{"id":4,"age_group":{"id":1,"title":"Дети: 6 - 7","minimum_age":6,"maximum_age":7,"age_type":1},"students_quantity_group":{"id":2,"title":"Группа (9 - 12)","minimum_quantity":9,"maximum_quantity":12,"group_type":1},"lesson_time":{"id":2,"time_value":45},"payment_program":{"id":2,"title":"Стандарт"},"price":280},
+			{"id":6,"age_group":{"id":2,"title":"Дети: 8 - 9","minimum_age":8,"maximum_age":9,"age_type":1},"students_quantity_group":{"id":1,"title":"Группа (5 - 8)","minimum_quantity":5,"maximum_quantity":8,"group_type":1},"lesson_time":{"id":3,"time_value":55},"payment_program":{"id":1,"title":"Абонемент"},"price":280},
+			{"id":7,"age_group":{"id":2,"title":"Дети: 8 - 9","minimum_age":8,"maximum_age":9,"age_type":1},"students_quantity_group":{"id":1,"title":"Группа (5 - 8)","minimum_quantity":5,"maximum_quantity":8,"group_type":1},"lesson_time":{"id":3,"time_value":55},"payment_program":{"id":2,"title":"Стандарт"},"price":305},
+			{"id":8,"age_group":{"id":2,"title":"Дети: 8 - 9","minimum_age":8,"maximum_age":9,"age_type":1},"students_quantity_group":{"id":2,"title":"Группа (9 - 12)","minimum_quantity":9,"maximum_quantity":12,"group_type":1},"lesson_time":{"id":3,"time_value":55},"payment_program":{"id":1,"title":"Абонемент"},"price":255},
+			{"id":9,"age_group":{"id":2,"title":"Дети: 8 - 9","minimum_age":8,"maximum_age":9,"age_type":1},"students_quantity_group":{"id":2,"title":"Группа (9 - 12)","minimum_quantity":9,"maximum_quantity":12,"group_type":1},"lesson_time":{"id":3,"time_value":55},"payment_program":{"id":2,"title":"Стандарт"},"price":280},
+			{"id":10,"age_group":{"id":3,"title":"Дети: 10 - 12","minimum_age":10,"maximum_age":12,"age_type":1},"students_quantity_group":{"id":1,"title":"Группа (5 - 8)","minimum_quantity":5,"maximum_quantity":8,"group_type":1},"lesson_time":{"id":5,"time_value":80},"payment_program":{"id":1,"title":"Абонемент"},"price":415},
+			{"id":11,"age_group":{"id":3,"title":"Дети: 10 - 12","minimum_age":10,"maximum_age":12,"age_type":1},"students_quantity_group":{"id":1,"title":"Группа (5 - 8)","minimum_quantity":5,"maximum_quantity":8,"group_type":1},"lesson_time":{"id":5,"time_value":80},"payment_program":{"id":2,"title":"Стандарт"},"price":450},
+			{"id":12,"age_group":{"id":3,"title":"Дети: 10 - 12","minimum_age":10,"maximum_age":12,"age_type":1},"students_quantity_group":{"id":2,"title":"Группа (9 - 12)","minimum_quantity":9,"maximum_quantity":12,"group_type":1},"lesson_time":{"id":5,"time_value":80},"payment_program":{"id":1,"title":"Абонемент"},"price":380},
+			{"id":13,"age_group":{"id":3,"title":"Дети: 10 - 12","minimum_age":10,"maximum_age":12,"age_type":1},"students_quantity_group":{"id":2,"title":"Группа (9 - 12)","minimum_quantity":9,"maximum_quantity":12,"group_type":1},"lesson_time":{"id":5,"time_value":80},"payment_program":{"id":2,"title":"Стандарт"},"price":415},
+			{"id":14,"age_group":{"id":3,"title":"Дети: 10 - 12","minimum_age":10,"maximum_age":12,"age_type":1},"students_quantity_group":{"id":3,"title":"Индивидуально","minimum_quantity":1,"maximum_quantity":1,"group_type":2},"lesson_time":{"id":1,"time_value":30},"payment_program":{"id":2,"title":"Стандарт"},"price":500},
+			{"id":15,"age_group":{"id":3,"title":"Дети: 10 - 12","minimum_age":10,"maximum_age":12,"age_type":1},"students_quantity_group":{"id":3,"title":"Индивидуально","minimum_quantity":1,"maximum_quantity":1,"group_type":2},"lesson_time":{"id":2,"time_value":45},"payment_program":{"id":2,"title":"Стандарт"},"price":800},
+			{"id":16,"age_group":{"id":3,"title":"Дети: 10 - 12","minimum_age":10,"maximum_age":12,"age_type":1},"students_quantity_group":{"id":3,"title":"Индивидуально","minimum_quantity":1,"maximum_quantity":1,"group_type":2},"lesson_time":{"id":4,"time_value":60},"payment_program":{"id":2,"title":"Стандарт"},"price":1000},
+			{"id":17,"age_group":{"id":3,"title":"Дети: 10 - 12","minimum_age":10,"maximum_age":12,"age_type":1},"students_quantity_group":{"id":3,"title":"Индивидуально","minimum_quantity":1,"maximum_quantity":1,"group_type":2},"lesson_time":{"id":5,"time_value":80},"payment_program":{"id":2,"title":"Стандарт"},"price":1400},
+			{"id":18,"age_group":{"id":3,"title":"Дети: 10 - 12","minimum_age":10,"maximum_age":12,"age_type":1},"students_quantity_group":{"id":4,"title":"Группа (2)","minimum_quantity":2,"maximum_quantity":2,"group_type":1},"lesson_time":{"id":1,"time_value":30},"payment_program":{"id":2,"title":"Стандарт"},"price":500},
+			{"id":19,"age_group":{"id":3,"title":"Дети: 10 - 12","minimum_age":10,"maximum_age":12,"age_type":1},"students_quantity_group":{"id":4,"title":"Группа (2)","minimum_quantity":2,"maximum_quantity":2,"group_type":1},"lesson_time":{"id":2,"time_value":45},"payment_program":{"id":2,"title":"Стандарт"},"price":600},
+			{"id":20,"age_group":{"id":3,"title":"Дети: 10 - 12","minimum_age":10,"maximum_age":12,"age_type":1},"students_quantity_group":{"id":4,"title":"Группа (2)","minimum_quantity":2,"maximum_quantity":2,"group_type":1},"lesson_time":{"id":4,"time_value":60},"payment_program":{"id":2,"title":"Стандарт"},"price":800},
+			{"id":21,"age_group":{"id":3,"title":"Дети: 10 - 12","minimum_age":10,"maximum_age":12,"age_type":1},"students_quantity_group":{"id":4,"title":"Группа (2)","minimum_quantity":2,"maximum_quantity":2,"group_type":1},"lesson_time":{"id":5,"time_value":80},"payment_program":{"id":2,"title":"Стандарт"},"price":1100},
+			{"id":22,"age_group":{"id":3,"title":"Дети: 10 - 12","minimum_age":10,"maximum_age":12,"age_type":1},"students_quantity_group":{"id":5,"title":"Группа (3 - 4)","minimum_quantity":3,"maximum_quantity":4,"group_type":1},"lesson_time":{"id":1,"time_value":30},"payment_program":{"id":2,"title":"Стандарт"},"price":350},
+			{"id":23,"age_group":{"id":3,"title":"Дети: 10 - 12","minimum_age":10,"maximum_age":12,"age_type":1},"students_quantity_group":{"id":5,"title":"Группа (3 - 4)","minimum_quantity":3,"maximum_quantity":4,"group_type":1},"lesson_time":{"id":2,"time_value":45},"payment_program":{"id":2,"title":"Стандарт"},"price":500},
+			{"id":24,"age_group":{"id":3,"title":"Дети: 10 - 12","minimum_age":10,"maximum_age":12,"age_type":1},"students_quantity_group":{"id":5,"title":"Группа (3 - 4)","minimum_quantity":3,"maximum_quantity":4,"group_type":1},"lesson_time":{"id":4,"time_value":60},"payment_program":{"id":2,"title":"Стандарт"},"price":650},
+			{"id":25,"age_group":{"id":3,"title":"Дети: 10 - 12","minimum_age":10,"maximum_age":12,"age_type":1},"students_quantity_group":{"id":5,"title":"Группа (3 - 4)","minimum_quantity":3,"maximum_quantity":4,"group_type":1},"lesson_time":{"id":5,"time_value":80},"payment_program":{"id":2,"title":"Стандарт"},"price":850},
+			{"id":26,"age_group":{"id":3,"title":"Дети: 10 - 12","minimum_age":10,"maximum_age":12,"age_type":1},"students_quantity_group":{"id":5,"title":"Группа (3 - 4)","minimum_quantity":3,"maximum_quantity":4,"group_type":1},"lesson_time":{"id":1,"time_value":30},"payment_program":{"id":3,"title":"Стандарт с оплатой до начала месяца"},"price":350},
+			{"id":27,"age_group":{"id":3,"title":"Дети: 10 - 12","minimum_age":10,"maximum_age":12,"age_type":1},"students_quantity_group":{"id":5,"title":"Группа (3 - 4)","minimum_quantity":3,"maximum_quantity":4,"group_type":1},"lesson_time":{"id":2,"time_value":45},"payment_program":{"id":3,"title":"Стандарт с оплатой до начала месяца"},"price":450},
+			{"id":28,"age_group":{"id":3,"title":"Дети: 10 - 12","minimum_age":10,"maximum_age":12,"age_type":1},"students_quantity_group":{"id":5,"title":"Группа (3 - 4)","minimum_quantity":3,"maximum_quantity":4,"group_type":1},"lesson_time":{"id":4,"time_value":60},"payment_program":{"id":3,"title":"Стандарт с оплатой до начала месяца"},"price":600},
+			{"id":29,"age_group":{"id":3,"title":"Дети: 10 - 12","minimum_age":10,"maximum_age":12,"age_type":1},"students_quantity_group":{"id":5,"title":"Группа (3 - 4)","minimum_quantity":3,"maximum_quantity":4,"group_type":1},"lesson_time":{"id":5,"time_value":80},"payment_program":{"id":3,"title":"Стандарт с оплатой до начала месяца"},"price":800},
+			{"id":30,"age_group":{"id":4,"title":"Дети: 13 - 16","minimum_age":13,"maximum_age":16,"age_type":1},"students_quantity_group":{"id":1,"title":"Группа (5 - 8)","minimum_quantity":5,"maximum_quantity":8,"group_type":1},"lesson_time":{"id":5,"time_value":80},"payment_program":{"id":1,"title":"Абонемент"},"price":415},
+			{"id":31,"age_group":{"id":4,"title":"Дети: 13 - 16","minimum_age":13,"maximum_age":16,"age_type":1},"students_quantity_group":{"id":1,"title":"Группа (5 - 8)","minimum_quantity":5,"maximum_quantity":8,"group_type":1},"lesson_time":{"id":5,"time_value":80},"payment_program":{"id":2,"title":"Стандарт"},"price":450},
+			{"id":32,"age_group":{"id":4,"title":"Дети: 13 - 16","minimum_age":13,"maximum_age":16,"age_type":1},"students_quantity_group":{"id":2,"title":"Группа (9 - 12)","minimum_quantity":9,"maximum_quantity":12,"group_type":1},"lesson_time":{"id":5,"time_value":80},"payment_program":{"id":1,"title":"Абонемент"},"price":380},
+			{"id":33,"age_group":{"id":4,"title":"Дети: 13 - 16","minimum_age":13,"maximum_age":16,"age_type":1},"students_quantity_group":{"id":2,"title":"Группа (9 - 12)","minimum_quantity":9,"maximum_quantity":12,"group_type":1},"lesson_time":{"id":5,"time_value":80},"payment_program":{"id":2,"title":"Стандарт"},"price":415},
+			{"id":34,"age_group":{"id":4,"title":"Дети: 13 - 16","minimum_age":13,"maximum_age":16,"age_type":1},"students_quantity_group":{"id":3,"title":"Индивидуально","minimum_quantity":1,"maximum_quantity":1,"group_type":2},"lesson_time":{"id":1,"time_value":30},"payment_program":{"id":2,"title":"Стандарт"},"price":500},
+			{"id":35,"age_group":{"id":4,"title":"Дети: 13 - 16","minimum_age":13,"maximum_age":16,"age_type":1},"students_quantity_group":{"id":3,"title":"Индивидуально","minimum_quantity":1,"maximum_quantity":1,"group_type":2},"lesson_time":{"id":2,"time_value":45},"payment_program":{"id":2,"title":"Стандарт"},"price":800},
+			{"id":36,"age_group":{"id":4,"title":"Дети: 13 - 16","minimum_age":13,"maximum_age":16,"age_type":1},"students_quantity_group":{"id":3,"title":"Индивидуально","minimum_quantity":1,"maximum_quantity":1,"group_type":2},"lesson_time":{"id":4,"time_value":60},"payment_program":{"id":2,"title":"Стандарт"},"price":1000},
+			{"id":37,"age_group":{"id":4,"title":"Дети: 13 - 16","minimum_age":13,"maximum_age":16,"age_type":1},"students_quantity_group":{"id":3,"title":"Индивидуально","minimum_quantity":1,"maximum_quantity":1,"group_type":2},"lesson_time":{"id":5,"time_value":80},"payment_program":{"id":2,"title":"Стандарт"},"price":1400},
+			{"id":38,"age_group":{"id":4,"title":"Дети: 13 - 16","minimum_age":13,"maximum_age":16,"age_type":1},"students_quantity_group":{"id":4,"title":"Группа (2)","minimum_quantity":2,"maximum_quantity":2,"group_type":1},"lesson_time":{"id":1,"time_value":30},"payment_program":{"id":2,"title":"Стандарт"},"price":500},
+			{"id":39,"age_group":{"id":4,"title":"Дети: 13 - 16","minimum_age":13,"maximum_age":16,"age_type":1},"students_quantity_group":{"id":4,"title":"Группа (2)","minimum_quantity":2,"maximum_quantity":2,"group_type":1},"lesson_time":{"id":2,"time_value":45},"payment_program":{"id":2,"title":"Стандарт"},"price":600},
+			{"id":40,"age_group":{"id":4,"title":"Дети: 13 - 16","minimum_age":13,"maximum_age":16,"age_type":1},"students_quantity_group":{"id":4,"title":"Группа (2)","minimum_quantity":2,"maximum_quantity":2,"group_type":1},"lesson_time":{"id":4,"time_value":60},"payment_program":{"id":2,"title":"Стандарт"},"price":800},
+			{"id":41,"age_group":{"id":4,"title":"Дети: 13 - 16","minimum_age":13,"maximum_age":16,"age_type":1},"students_quantity_group":{"id":4,"title":"Группа (2)","minimum_quantity":2,"maximum_quantity":2,"group_type":1},"lesson_time":{"id":5,"time_value":80},"payment_program":{"id":2,"title":"Стандарт"},"price":1100},
+			{"id":42,"age_group":{"id":4,"title":"Дети: 13 - 16","minimum_age":13,"maximum_age":16,"age_type":1},"students_quantity_group":{"id":5,"title":"Группа (3 - 4)","minimum_quantity":3,"maximum_quantity":4,"group_type":1},"lesson_time":{"id":1,"time_value":30},"payment_program":{"id":2,"title":"Стандарт"},"price":350},
+			{"id":43,"age_group":{"id":4,"title":"Дети: 13 - 16","minimum_age":13,"maximum_age":16,"age_type":1},"students_quantity_group":{"id":5,"title":"Группа (3 - 4)","minimum_quantity":3,"maximum_quantity":4,"group_type":1},"lesson_time":{"id":2,"time_value":45},"payment_program":{"id":2,"title":"Стандарт"},"price":500},
+			{"id":44,"age_group":{"id":4,"title":"Дети: 13 - 16","minimum_age":13,"maximum_age":16,"age_type":1},"students_quantity_group":{"id":5,"title":"Группа (3 - 4)","minimum_quantity":3,"maximum_quantity":4,"group_type":1},"lesson_time":{"id":4,"time_value":60},"payment_program":{"id":2,"title":"Стандарт"},"price":650},
+			{"id":45,"age_group":{"id":4,"title":"Дети: 13 - 16","minimum_age":13,"maximum_age":16,"age_type":1},"students_quantity_group":{"id":5,"title":"Группа (3 - 4)","minimum_quantity":3,"maximum_quantity":4,"group_type":1},"lesson_time":{"id":5,"time_value":80},"payment_program":{"id":2,"title":"Стандарт"},"price":850},
+			{"id":46,"age_group":{"id":4,"title":"Дети: 13 - 16","minimum_age":13,"maximum_age":16,"age_type":1},"students_quantity_group":{"id":5,"title":"Группа (3 - 4)","minimum_quantity":3,"maximum_quantity":4,"group_type":1},"lesson_time":{"id":1,"time_value":30},"payment_program":{"id":3,"title":"Стандарт с оплатой до начала месяца"},"price":350},
+			{"id":47,"age_group":{"id":4,"title":"Дети: 13 - 16","minimum_age":13,"maximum_age":16,"age_type":1},"students_quantity_group":{"id":5,"title":"Группа (3 - 4)","minimum_quantity":3,"maximum_quantity":4,"group_type":1},"lesson_time":{"id":2,"time_value":45},"payment_program":{"id":3,"title":"Стандарт с оплатой до начала месяца"},"price":450},
+			{"id":48,"age_group":{"id":4,"title":"Дети: 13 - 16","minimum_age":13,"maximum_age":16,"age_type":1},"students_quantity_group":{"id":5,"title":"Группа (3 - 4)","minimum_quantity":3,"maximum_quantity":4,"group_type":1},"lesson_time":{"id":4,"time_value":60},"payment_program":{"id":3,"title":"Стандарт с оплатой до начала месяца"},"price":600},
+			{"id":50,"age_group":{"id":4,"title":"Дети: 13 - 16","minimum_age":13,"maximum_age":16,"age_type":1},"students_quantity_group":{"id":5,"title":"Группа (3 - 4)","minimum_quantity":3,"maximum_quantity":4,"group_type":1},"lesson_time":{"id":5,"time_value":80},"payment_program":{"id":3,"title":"Стандарт с оплатой до начала месяца"},"price":800}]
+		
+		Calculator = function(basicPrices) {
+
+			this.findHTMLElements = function() {
+				this.age_group = document.getElementById('id_age_group');
+				this.students_quantity_group = document.getElementById('id_students_quantity_group');
+				this.lesson_time = document.getElementById('id_lesson_time');
+				this.payment_program = document.getElementById('id_payment_program');
+				this.price = document.getElementById('id_price');
+				this.missed_lessons = document.getElementById('id_missed_lessons');
+				this.planned_lessons = document.getElementById('id_planned_lessons');
+				this.discount_rate = document.getElementById('id_discount_rate');
+				this.total_month_price = document.getElementById('id_total_month_price');
+				this.discount_value = document.getElementById('id_discount_value');
+				this.total_price = document.getElementById('id_total_price');
+
+				this.age_group.onchange = this.changeAgeGroupFieldEvent;
+				this.missed_lessons.onchange = this.planned_lessons.onchange = this.missed_lessons.onchange = this.discount_rate.onchange = this.countTotalPriceEvent;
+
+				this.fieldsAfterLessonTime = [this.payment_program];
+				this.fieldsAfterStudentsQuantityGroup = [this.lesson_time].concat(this.fieldsAfterLessonTime);
+				this.fieldsAfterAgeGroup = [this.students_quantity_group].concat(this.fieldsAfterStudentsQuantityGroup);
+			};
+
+			this.__isStartOption = function(value) {
+				return value == 'start';
+			};
+
+			this.__disableField = function(field) {
+				field.disabled = true;
+			};
+
+			this.__enableField = function(field) {
+				field.disabled = false;
+			};
+
+			this.__addDefaultOption = function(field) {
+				// console.log(field)
+				var option = document.createElement('option');
+				option.value = 'start';
+				option.innerHTML = 'Выберете';
+				field.appendChild(option);
+			};
+
+			this.deactivateFields = function(fieldsList) {
+				for (var i=0;i<fieldsList.length;i++) {
+					var field = fieldsList[i];
+					cleanNodeContent(field);
+					this.__addDefaultOption(field);
+					this.__disableField(field);
+					this.cleanBasicPrice();
+				};
+			};
+
+			this.fillAgeGroupField = function() {
+				this.deactivateFields(this.fieldsAfterAgeGroup);
+				this.__addDefaultOption(this.age_group);
+				this.allAgeGroups = {};
+				for (var i=0;i<this.basicPrices.length;i++) {
+					var ageGroupTitle = this.basicPrices[i].age_group.title;
+					var ageGroupId = this.basicPrices[i].age_group.id;
+					var basicPriceId = this.basicPrices[i].id;
+					// console.log(ageGroupId, ageGroupTitle)
+					// console.log(Object.keys(this.allAgeGroups))
+					if (Object.keys(this.allAgeGroups).indexOf(String(ageGroupId)) < 0) {
+						// console.log(ageGroupId, ageGroupTitle)
+						this.allAgeGroups[ageGroupId] = {"title": ageGroupTitle,
+														"basic_price_ids": [basicPriceId]
+														};
+					} else {
+						if (this.allAgeGroups[ageGroupId].basic_price_ids.indexOf(basicPriceId) < 0) {
+							this.allAgeGroups[ageGroupId].basic_price_ids.push(basicPriceId);
+						};
+					};
+				};
+				var ageGroupsOptionsFragment = document.createDocumentFragment();
+				for(var i=0;i<Object.keys(this.allAgeGroups).length;i++) {
+					var ageGroupOption = document.createElement('option');
+					ageGroupOption.innerHTML = this.allAgeGroups[Object.keys(this.allAgeGroups)[i]].title;
+					ageGroupOption.value = Object.keys(this.allAgeGroups)[i];
+					ageGroupsOptionsFragment.appendChild(ageGroupOption);
+				};
+				this.age_group.appendChild(ageGroupsOptionsFragment);
+			};
+
+			this.changeAgeGroupFieldEvent = function(event) {
+				window.calculator.fillStudentsQuantityGroupField();
+			};
+
+			this.fillStudentsQuantityGroupField = function() {
+				this.deactivateFields(this.fieldsAfterAgeGroup);
+				var ageGroupId = this.age_group.value;
+				if (!this.__isStartOption(ageGroupId)) {
+					this.__enableField(this.students_quantity_group);
+					var basicPricesIdsForThisAgeGroup = this.allAgeGroups[ageGroupId].basic_price_ids;
+					this.allStudentsQuantityGroups = {};
+					for (var i=0;i<basicPricesIdsForThisAgeGroup.length;i++) {
+						for (var j=0;j<this.basicPrices.length;j++) {
+							if (basicPricesIdsForThisAgeGroup[i] == this.basicPrices[j].id) {
+								var studentsQuantityGroupTitle = this.basicPrices[j].students_quantity_group.title;
+								var studentsQuantityGroupId = this.basicPrices[j].students_quantity_group.id;
+								if (Object.keys(this.allStudentsQuantityGroups).indexOf(String(studentsQuantityGroupId)) < 0) {
+									this.allStudentsQuantityGroups[studentsQuantityGroupId] = {"title": studentsQuantityGroupTitle,
+																								"basic_price_ids": [this.basicPrices[j].id]
+																								};
+								} else {
+									if (this.allStudentsQuantityGroups[studentsQuantityGroupId].basic_price_ids.indexOf(basicPrices[j].id) < 0) {
+										this.allStudentsQuantityGroups[studentsQuantityGroupId].basic_price_ids.push(basicPrices[j].id);
+									};
+								};
+							};
+						};
+					};
+					var studentsQuantityGroupsOptionsFragment = document.createDocumentFragment();
+					for(var i=0;i<Object.keys(this.allStudentsQuantityGroups).length;i++) {
+						var studentQuantityGroupOption = document.createElement('option');
+						studentQuantityGroupOption.innerHTML = this.allStudentsQuantityGroups[Object.keys(this.allStudentsQuantityGroups)[i]].title;
+						studentQuantityGroupOption.value = Object.keys(this.allStudentsQuantityGroups)[i];
+						studentsQuantityGroupsOptionsFragment.appendChild(studentQuantityGroupOption);
+					};
+					this.students_quantity_group.appendChild(studentsQuantityGroupsOptionsFragment);
+					this.students_quantity_group.onchange = this.changeStudentsQuantityGroupFieldEvent;
+				};
+			};
+
+			this.changeStudentsQuantityGroupFieldEvent = function(event) {
+				window.calculator.fillLessonTimeField();
+			};
+
+			this.fillLessonTimeField = function() {
+				this.deactivateFields(this.fieldsAfterStudentsQuantityGroup);
+				var studentsQuantityGroupId = this.students_quantity_group.value;
+				// console.log(this.allStudentsQuantityGroups);
+				if (!this.__isStartOption(studentsQuantityGroupId)) {
+					this.__enableField(this.lesson_time);
+					var basicPricesIdsForThisStudentsQuantityGroup = this.allStudentsQuantityGroups[studentsQuantityGroupId].basic_price_ids;
+					// console.log(basicPricesIdsForThisStudentsQuantityGroup)
+					this.allLessonTimeValues = {};
+					for (var i=0;i<basicPricesIdsForThisStudentsQuantityGroup.length;i++) {
+						for (var j=0;j<this.basicPrices.length;j++) {
+							if (basicPricesIdsForThisStudentsQuantityGroup[i] == this.basicPrices[j].id) {
+								var lessonTimeValue = this.basicPrices[j].lesson_time.time_value;
+								var lessonTimeId = this.basicPrices[j].lesson_time.id;
+								if (Object.keys(this.allLessonTimeValues).indexOf(String(lessonTimeId)) < 0) {
+									this.allLessonTimeValues[lessonTimeId] = {"time_value": lessonTimeValue,																"basic_price_ids": [this.basicPrices[j].id]
+																			};
+								} else {
+									if (this.allLessonTimeValues[lessonTimeId].basic_price_ids.indexOf(basicPrices[j].id) < 0) {
+										this.allLessonTimeValues[lessonTimeId].basic_price_ids.push(basicPrices[j].id);
+									};
+								};
+							};
+						};
+					};
+					// console.log(this.allLessonTimeValues)
+					var lessonTimeValuesOptionsFragment = document.createDocumentFragment();
+					for(var i=0;i<Object.keys(this.allLessonTimeValues).length;i++) {
+						var lessonTimeValueOption = document.createElement('option');
+						lessonTimeValueOption.innerHTML = this.allLessonTimeValues[Object.keys(this.allLessonTimeValues)[i]].time_value;
+						lessonTimeValueOption.value = Object.keys(this.allLessonTimeValues)[i];
+						lessonTimeValuesOptionsFragment.appendChild(lessonTimeValueOption);
+					};
+					this.lesson_time.appendChild(lessonTimeValuesOptionsFragment);
+					this.lesson_time.onchange = this.changeLessonTimeFieldEvent;
+				};
+			};
+
+			this.changeLessonTimeFieldEvent = function(event) {
+				window.calculator.fillPaymentProgram();
+			};
+
+			this.fillPaymentProgram = function() {
+				this.deactivateFields(this.fieldsAfterLessonTime);
+				var timeLessonValueId = this.lesson_time.value;
+				// console.log(timeLessonValueId)
+				if (!this.__isStartOption(timeLessonValueId)) {
+					this.__enableField(this.payment_program);
+					var basicPricesIdsForThisTimeLessonValueGroup = this.allLessonTimeValues[timeLessonValueId].basic_price_ids;
+					this.allPaymentPrograms = {};
+					for (var i=0;i<basicPricesIdsForThisTimeLessonValueGroup.length;i++) {
+						for (var j=0;j<this.basicPrices.length;j++) {
+							if (basicPricesIdsForThisTimeLessonValueGroup[i] == this.basicPrices[j].id) {
+								var paymentProgramTitle = this.basicPrices[j].payment_program.title;
+								var paymentProgramId = this.basicPrices[j].payment_program.id;
+								if (Object.keys(this.allPaymentPrograms).indexOf(String(paymentProgramId)) < 0) {
+									this.allPaymentPrograms[paymentProgramId] = {"title": paymentProgramTitle,															"basic_price_ids": [this.basicPrices[j].id]
+																				};
+								} else {
+									if (this.allPaymentPrograms[paymentProgramId].basic_price_ids.indexOf(basicPrices[j].id) < 0) {
+										this.allPaymentPrograms[paymentProgramId].basic_price_ids.push(basicPrices[j].id);
+									};
+								};
+							};
+						};
+					};
+				// console.log(this.allPaymentPrograms);
+				var paymentProgramsOptionsFragment = document.createDocumentFragment();
+				for(var i=0;i<Object.keys(this.allPaymentPrograms).length;i++) {
+					var paymentProgramOption = document.createElement('option');
+					paymentProgramOption.innerHTML = this.allPaymentPrograms[Object.keys(this.allPaymentPrograms)[i]].title;
+					paymentProgramOption.value = Object.keys(this.allPaymentPrograms)[i];
+					paymentProgramsOptionsFragment.appendChild(paymentProgramOption);
+				};
+				this.payment_program.appendChild(paymentProgramsOptionsFragment);
+				this.payment_program.onchange = this.paymentProgramFieldEvent;
+				};
+			};
+
+			this.paymentProgramFieldEvent = function() {
+				window.calculator.fillBasicPrice();
+			};
+
+			this.fillBasicPrice = function() {
+				var paymentProgramId = this.payment_program.value;
+				var basicPriceProgramId = this.allPaymentPrograms[paymentProgramId].basic_price_ids[0];
+				this.__enableField(this.discount_rate);
+				for (var j=0;j<this.basicPrices.length;j++) {
+					if (this.basicPrices[j].id == basicPriceProgramId) {
+						this.basicPriceProgram = basicPrices[j];
+						console.log(this.basicPriceProgram);
+						this.basicPriceValue = this.basicPriceProgram.price;
+						break;
+					};
+				};
+				// console.log(this.basicPriceValue);
+				this.price.innerHTML = this.basicPriceValue;
+				this.countTotalPrice();
+			};
+
+			this.countTotalPriceEvent = function(event) {
+				window.calculator.countTotalPrice();
+			};
+
+			this.countTotalPrice = function() {
+				if (this.basicPriceValue) {
+					this.discountRate = Number(this.discount_rate.value);
+					
+					if (this.basicPriceProgram.payment_program.id == 1) {
+						var missedLessons = 0;
+					} else {
+						var missedLessons = this.missed_lessons.value;
+					};
+
+					this.totalMonthPrice = this.basicPriceValue * (this.planned_lessons.value - missedLessons);
+					this.discountValue = this.totalMonthPrice * this.discountRate/100;
+					this.totalPrice = this.totalMonthPrice - this.discountValue;
+
+					this.total_month_price.innerHTML = this.totalMonthPrice;
+					this.discount_value.innerHTML = this.discountValue;
+					this.total_price.innerHTML = this.totalPrice;
+				};
+			};
+
+			this.cleanBasicPrice = function() {
+				this.basicPriceValue = false;
+				this.total_month_price.innerHTML = '';
+				this.discount_value.innerHTML = '';
+				this.total_price.innerHTML = '';
+			};
+
+			this.basicPrices = basicPrices;
+			this.findHTMLElements();
+			this.fillAgeGroupField();
+			this.cleanBasicPrice();
+			// this.fillStudentsQuantityGroupField();
+		};
+
+		calculator = new Calculator(data);
+	</script>
+</body>
